@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flinn Foundation — Prompt Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --flinn-blue: #002856;
+    --flinn-blue-light: #003d7a;
+    --flinn-green: #009877;
+    --flinn-green-light: #00b38f;
+    --flinn-green-pale: #e6f7f3;
+    --flinn-blue-pale: #e8eef5;
+    --flinn-warm-gray: #f5f5f3;
+    --flinn-border: #d5d5d0;
+    --flinn-text: #2d2d2d;
+    --flinn-text-light: #555555;
+    --card-radius: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+    --transition: 0.2s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Open Sans', Arial, sans-serif;
+    background: var(--flinn-warm-gray);
+    color: var(--flinn-text);
+    line-height: 1.5;
+  }
+
+  header {
+    background: var(--flinn-blue);
+    color: white;
+    padding: 2rem 2rem 1.8rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+
+  .header-inner { max-width: 1200px; margin: 0 auto; }
+
+  header h1 {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.15rem;
+  }
+
+  header p.subtitle {
+    font-weight: 300;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-bottom: 1.4rem;
+  }
+
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-box { flex: 1; min-width: 220px; position: relative; }
+
+  .search-box input {
+    width: 100%;
+    padding: 0.6rem 0.8rem 0.6rem 2.4rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .search-box input::placeholder { color: rgba(255,255,255,0.5); }
+  .search-box input:focus { outline: none; border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); }
+
+  .search-icon {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%); opacity: 0.5; font-size: 0.9rem;
+  }
+
+  .filter-select {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .filter-select:focus { outline: none; border-color: rgba(255,255,255,0.5); }
+  .filter-select option { color: var(--flinn-text); background: white; }
+
+  .btn-submit {
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--flinn-green);
+    border-radius: 6px;
+    background: var(--flinn-green);
+    color: white;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .btn-submit:hover { background: var(--flinn-green-light); border-color: var(--flinn-green-light); }
+
+  .count-badge {
+    font-size: 0.8rem; font-weight: 400;
+    opacity: 0.6; margin-left: auto; white-space: nowrap;
+  }
+
+  .status-message {
+    max-width: 1200px; margin: 3rem auto;
+    padding: 0 2rem; text-align: center; color: var(--flinn-text-light);
+  }
+
+  .status-message p { font-size: 1rem; margin-bottom: 0.5rem; }
+  .status-message .hint { font-size: 0.85rem; opacity: 0.7; }
+
+  .spinner {
+    display: inline-block; width: 28px; height: 28px;
+    border: 3px solid var(--flinn-border); border-top-color: var(--flinn-green);
+    border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .card-grid {
+    max-width: 1200px; margin: 2rem auto; padding: 0 2rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem;
+  }
+
+  .card {
+    background: white; border-radius: var(--card-radius);
+    border: 1px solid var(--flinn-border); box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), transform var(--transition);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+  .card-header { padding: 1.2rem 1.2rem 0.8rem; }
+
+  .card-title {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 600; font-size: 1.05rem;
+    color: var(--flinn-blue); margin-bottom: 0.5rem; line-height: 1.35;
+  }
+
+  .card-meta { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.1rem; }
+
+  .tag {
+    display: inline-block; padding: 0.15rem 0.55rem; border-radius: 3px;
+    font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  .tag-category { background: var(--flinn-blue-pale); color: var(--flinn-blue); }
+  .tag-tool { background: var(--flinn-green-pale); color: #006b54; }
+
+  .card-body { padding: 0 1.2rem; flex: 1; }
+
+  .prompt-text {
+    font-size: 0.88rem; line-height: 1.6;
+    color: var(--flinn-text-light); white-space: pre-wrap; word-break: break-word;
+  }
+
+  .prompt-text.collapsed { max-height: 4.8em; overflow: hidden; position: relative; }
+
+  .prompt-text.collapsed::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2em; background: linear-gradient(transparent, white);
+  }
+
+  .btn-expand {
+    background: none; border: none; color: var(--flinn-green);
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    padding: 0.3rem 0; margin-left: 1.2rem;
+  }
+
+  .btn-expand:hover { text-decoration: underline; }
+
+  .card-tips {
+    padding: 0.8rem 1.2rem; font-size: 0.82rem;
+    color: var(--flinn-text-light); border-top: 1px dashed var(--flinn-border); margin-top: 0.6rem;
+  }
+
+  .card-tips strong { color: var(--flinn-text); font-weight: 600; }
+
+  .card-footer {
+    padding: 0.8rem 1.2rem; border-top: 1px solid var(--flinn-border);
+    display: flex; justify-content: space-between; align-items: center; background: #fafaf9;
+  }
+
+  .card-contributor { font-size: 0.78rem; color: var(--flinn-text-light); font-style: italic; }
+
+  .btn-copy {
+    padding: 0.4rem 0.9rem; border: 1px solid var(--flinn-green);
+    border-radius: 5px; background: white; color: var(--flinn-green);
+    font-family: inherit; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; transition: var(--transition);
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+
+  .btn-copy:hover { background: var(--flinn-green); color: white; }
+  .btn-copy.copied { border-color: var(--flinn-blue); background: var(--flinn-blue); color: white; }
+
+  .empty-state {
+    grid-column: 1 / -1; text-align: center;
+    padding: 4rem 2rem; color: var(--flinn-text-light);
+  }
+
+  .empty-state p { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .empty-state .hint { font-size: 0.9rem; opacity: 0.7; }
+
+  footer {
+    max-width: 1200px; margin: 1rem auto 3rem;
+    padding: 0 2rem; text-align: center;
+    font-size: 0.8rem; color: var(--flinn-text-light); opacity: 0.6;
+  }
+
+  @media (max-width: 700px) {
+    header { padding: 1.4rem 1rem 1.2rem; }
+    .card-grid { padding: 0 1rem; grid-template-columns: 1fr; }
+    .controls { flex-direction: column; }
+    .search-box { min-width: 100%; }
+    .count-badge { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Prompt Library</h1>
+    <p class="subtitle">Flinn Foundation — Shared prompts and templates for AI-assisted work</p>
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search prompts..." />
+      </div>
+      <select class="filter-select" id="categoryFilter">
+        <option value="">All Categories</option>
+      </select>
+      <select class="filter-select" id="toolFilter">
+        <option value="">All AI Tools</option>
+      </select>
+      <!-- ====== REPLACE THIS URL WITH YOUR GOOGLE FORM URL ====== -->
+      <a class="btn-submit" href="https://docs.google.com/forms/d/e/1FAIpQLSdjFV1NAT9CjnyCuhGVRgzCNjLXy26gN6J7FIz96-wrzslfxQ/viewform?usp=dialog" target="_blank">+ Submit a Prompt</a>
+      <span class="count-badge" id="countBadge"></span>
+    </div>
+  </div>
+</header>
+
+<div id="loadingState" class="status-message">
+  <div class="spinner"></div>
+  <p>Loading prompts...</p>
+</div>
+
+<div id="errorState" class="status-message" style="display:none;">
+  <p>Unable to load prompts.</p>
+  <p class="hint">Check that the Google Sheet is published and the Sheet URL in the code is correct.</p>
+</div>
+
+<div class="card-grid" id="cardGrid" style="display:none;"></div>
+
+<footer>
+  To add a prompt, use the green "Submit a Prompt" button. Questions? Contact Matt.
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//
+//  SETUP INSTRUCTIONS
+//
+//  You need to do THREE things to make this work:
+//
+//  ── STEP 1: Create a Google Form ──
+//
+//  Create a Google Form with these fields in this order:
+//    1. Prompt Title          (Short answer)
+//    2. Category              (Dropdown with these options:
+//                              Writing & Editing
+//                              Research & Analysis
+//                              Data & Spreadsheets
+//                              Communications
+//                              Program Management
+//                              Other)
+//    3. AI Tool               (Short answer — e.g. "Claude", "ChatGPT", "Any")
+//    4. Prompt Text           (Paragraph)
+//    5. Tips or Notes         (Paragraph — mark as not required)
+//    6. Your Name             (Short answer)
+//
+//  ── STEP 2: Set up the Google Sheet ──
+//
+//  In the Google Form editor, click the "Responses" tab, then click
+//  the green Sheets icon to create a linked spreadsheet.
+//
+//  Open that spreadsheet. The Form will have created columns A-G
+//  (Timestamp + your 6 form fields). Now:
+//
+//    - Rename the column headers to EXACTLY these values:
+//        A: Timestamp
+//        B: Title
+//        C: Category
+//        D: AI Tool
+//        E: Prompt
+//        F: Tips
+//        G: Contributor
+//
+//    - Add one more column:
+//        H: Hide
+//
+//    Column H is your kill switch. To remove any prompt from the
+//    web app, just type TRUE in its Hide cell. Leave it blank
+//    to keep the prompt visible.
+//
+//  Then publish the sheet:
+//    1. Go to File > Share > Publish to web
+//    2. Under "Link", select "Sheet1" (or your tab name) and "CSV"
+//    3. Click Publish
+//    4. Copy the URL it gives you
+//    5. Paste that URL into SHEET_URL below (replacing the placeholder)
+//
+//  ── STEP 3: Update the Form link ──
+//
+//  In the HTML above, search for REPLACE_WITH_YOUR_GOOGLE_FORM_URL
+//  and replace it with the shareable link to your Google Form.
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+var SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQeGIqkTF2v0o2WU9YqJ8OBmPYbf7uRYxrmNt4_Foi0M2w2Dy62FNYrk6TWOQovgtzw95LibpBP_pXB/pub?gid=906249072&single=true&output=csv";
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  APP CODE — No edits needed below this line.
+// ═══════════════════════════════════════════════════════════════════════════
+
+var PROMPTS = [];
+var grid = document.getElementById('cardGrid');
+var searchInput = document.getElementById('searchInput');
+var categoryFilter = document.getElementById('categoryFilter');
+var toolFilter = document.getElementById('toolFilter');
+var countBadge = document.getElementById('countBadge');
+var loadingState = document.getElementById('loadingState');
+var errorState = document.getElementById('errorState');
+
+function parseCSV(text) {
+  var rows = [];
+  var row = [];
+  var field = '';
+  var inQuotes = false;
+  var i = 0;
+  while (i < text.length) {
+    var ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (i + 1 < text.length && text[i + 1] === '"') {
+          field += '"'; i += 2;
+        } else {
+          inQuotes = false; i++;
+        }
+      } else { field += ch; i++; }
+    } else {
+      if (ch === '"') { inQuotes = true; i++; }
+      else if (ch === ',') { row.push(field); field = ''; i++; }
+      else if (ch === '\r' || ch === '\n') {
+        row.push(field); field = '';
+        if (ch === '\r' && i + 1 < text.length && text[i + 1] === '\n') i += 2; else i++;
+        if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
+        row = [];
+      } else { field += ch; i++; }
+    }
+  }
+  row.push(field);
+  if (row.length > 1 || (row.length === 1 && row[0] !== '')) rows.push(row);
+  return rows;
+}
+
+function loadPrompts() {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', SHEET_URL, true);
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        var rows = parseCSV(xhr.responseText);
+        if (rows.length < 2) { showError(); return; }
+        var headers = [];
+        for (var h = 0; h < rows[0].length; h++) headers.push(rows[0][h].toLowerCase().trim());
+        var colTitle = headers.indexOf('title');
+        var colCategory = headers.indexOf('category');
+        var colTool = headers.indexOf('ai tool');
+        var colPrompt = headers.indexOf('prompt');
+        var colTips = headers.indexOf('tips');
+        var colContributor = headers.indexOf('contributor');
+        var colHide = headers.indexOf('hide');
+        PROMPTS = [];
+        for (var r = 1; r < rows.length; r++) {
+          var d = rows[r];
+          if (colHide >= 0 && d[colHide] && d[colHide].toUpperCase().trim() === 'TRUE') continue;
+          var title = (colTitle >= 0 && d[colTitle]) ? d[colTitle].trim() : '';
+          var prompt = (colPrompt >= 0 && d[colPrompt]) ? d[colPrompt].trim() : '';
+          if (!title || !prompt) continue;
+          PROMPTS.push({
+            title: title,
+            category: (colCategory >= 0 && d[colCategory]) ? d[colCategory].trim() : 'Other',
+            tool: (colTool >= 0 && d[colTool]) ? d[colTool].trim() : '',
+            prompt: prompt,
+            tips: (colTips >= 0 && d[colTips]) ? d[colTips].trim() : '',
+            contributor: (colContributor >= 0 && d[colContributor]) ? d[colContributor].trim() : ''
+          });
+        }
+        buildFilters();
+        renderCards();
+        loadingState.style.display = 'none';
+        grid.style.display = 'grid';
+      } catch (e) { showError(); }
+    } else { showError(); }
+  };
+  xhr.onerror = function() { showError(); };
+  xhr.send();
+}
+
+function showError() {
+  loadingState.style.display = 'none';
+  errorState.style.display = 'block';
+}
+
+function buildFilters() {
+  var categories = [], tools = [], i, c, t, opt;
+  for (i = 0; i < PROMPTS.length; i++) {
+    c = PROMPTS[i].category; t = PROMPTS[i].tool;
+    if (c && categories.indexOf(c) === -1) categories.push(c);
+    if (t && tools.indexOf(t) === -1) tools.push(t);
+  }
+  categories.sort(); tools.sort();
+  for (i = 0; i < categories.length; i++) {
+    opt = document.createElement('option');
+    opt.value = categories[i]; opt.textContent = categories[i];
+    categoryFilter.appendChild(opt);
+  }
+  for (i = 0; i < tools.length; i++) {
+    opt = document.createElement('option');
+    opt.value = tools[i]; opt.textContent = tools[i];
+    toolFilter.appendChild(opt);
+  }
+}
+
+function esc(str) {
+  var d = document.createElement('div');
+  d.textContent = str; return d.innerHTML;
+}
+
+function getFilteredPrompts() {
+  var query = searchInput.value.toLowerCase().trim();
+  var catVal = categoryFilter.value;
+  var toolVal = toolFilter.value;
+  var result = [];
+  for (var i = 0; i < PROMPTS.length; i++) {
+    var p = PROMPTS[i];
+    if (catVal && p.category !== catVal) continue;
+    if (toolVal && p.tool !== toolVal) continue;
+    if (query) {
+      var haystack = (p.title + ' ' + p.prompt + ' ' + (p.tips || '') + ' ' + p.category + ' ' + p.tool).toLowerCase();
+      if (haystack.indexOf(query) === -1) continue;
+    }
+    result.push(p);
+  }
+  return result;
+}
+
+function renderCards() {
+  var filtered = getFilteredPrompts();
+  countBadge.textContent = filtered.length + ' of ' + PROMPTS.length + ' prompt' + (PROMPTS.length !== 1 ? 's' : '');
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><p>No prompts match your search.</p><span class="hint">Try adjusting your filters or search terms.</span></div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    var p = filtered[i];
+    var needsCollapse = p.prompt.length > 180;
+    html += '<div class="card"><div class="card-header">';
+    html += '<div class="card-title">' + esc(p.title) + '</div>';
+    html += '<div class="card-meta"><span class="tag tag-category">' + esc(p.category) + '</span>';
+    if (p.tool) html += '<span class="tag tag-tool">' + esc(p.tool) + '</span>';
+    html += '</div></div><div class="card-body">';
+    html += '<div class="prompt-text' + (needsCollapse ? ' collapsed' : '') + '" id="pt-' + i + '">' + esc(p.prompt) + '</div></div>';
+    if (needsCollapse) html += '<button class="btn-expand" onclick="toggleExpand(' + i + ')">Show more</button>';
+    if (p.tips) html += '<div class="card-tips"><strong>Tip:</strong> ' + esc(p.tips) + '</div>';
+    html += '<div class="card-footer"><span class="card-contributor">' + (p.contributor ? 'From ' + esc(p.contributor) : '') + '</span>';
+    html += '<button class="btn-copy" onclick="copyPrompt(' + i + ', this)">&#128203; Copy</button></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function toggleExpand(i) {
+  var el = document.getElementById('pt-' + i);
+  var card = el.parentNode.parentNode;
+  var btn = card.querySelector('.btn-expand');
+  if (el.className.indexOf('collapsed') !== -1) {
+    el.className = el.className.replace(' collapsed', '');
+    btn.textContent = 'Show less';
+  } else {
+    el.className += ' collapsed';
+    btn.textContent = 'Show more';
+  }
+}
+
+function copyPrompt(i, btn) {
+  var filtered = getFilteredPrompts();
+  var text = filtered[i].prompt;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopied(btn);
+    }, function() { fallbackCopy(text, btn); });
+  } else { fallbackCopy(text, btn); }
+}
+
+function fallbackCopy(text, btn) {
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showCopied(btn); }
+  catch (e) { alert('Copy failed. Please select and copy the prompt text manually.'); }
+  document.body.removeChild(ta);
+}
+
+function showCopied(btn) {
+  btn.className = 'btn-copy copied';
+  btn.innerHTML = '&#10003; Copied';
+  setTimeout(function() {
+    btn.className = 'btn-copy';
+    btn.innerHTML = '&#128203; Copy';
+  }, 1500);
+}
+
+searchInput.addEventListener('input', renderCards);
+categoryFilter.addEventListener('change', renderCards);
+toolFilter.addEventListener('change', renderCards);
+
+loadPrompts();
+</script>
+</body>
+</html>
