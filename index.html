@@ -565,6 +565,30 @@ function getFilteredPrompts() {
 function renderCards() {
   var filtered = getFilteredPrompts();
   countBadge.textContent = filtered.length + ' of ' + PROMPTS.length + ' prompt' + (PROMPTS.length !== 1 ? 's' : '');
+  // 🐢 Easter egg
+  if (searchInput.value.toLowerCase().trim() === 'dragonite') {
+    if (!document.getElementById('dragonite')) {
+      var tort = document.createElement('div');
+      tort.id = 'dragonite';
+      tort.title = 'Dragonite says hello from the courtyard!';
+      tort.style.cssText = 'position:fixed;bottom:12px;left:-60px;font-size:40px;z-index:9999;transition:none;cursor:pointer;';
+      tort.textContent = '\uD83D\uDC22';
+      tort.onclick = function() { alert('🐢 Dragonite approves of your prompting skills.'); };
+      document.body.appendChild(tort);
+      var pos = -60;
+      var crawl = setInterval(function() {
+        pos += 0.5;
+        tort.style.left = pos + 'px';
+        if (pos > window.innerWidth + 60) {
+          clearInterval(crawl);
+          if (tort.parentNode) tort.parentNode.removeChild(tort);
+        }
+      }, 16);
+    }
+  } else {
+    var old = document.getElementById('dragonite');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+  }
   if (filtered.length === 0) {
     grid.innerHTML = '<div class="empty-state"><p>No prompts match your search.</p><span class="hint">Try adjusting your filters or search terms.</span></div>';
     return;
