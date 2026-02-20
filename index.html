@@ -526,7 +526,13 @@ function buildFilters() {
 
 function esc(str) {
   var d = document.createElement('div');
-  d.textContent = str; return d.innerHTML;
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function escWithLinks(str) {
+  var safe = esc(str);
+  return safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--flinn-green);word-break:break-all;">$1</a>');
 }
 
 function getFilteredPrompts() {
@@ -577,9 +583,9 @@ function renderCards() {
     html += '<div class="card-meta"><span class="tag tag-category">' + esc(p.category) + '</span>';
     if (p.tool) html += '<span class="tag tag-tool">' + esc(p.tool) + '</span>';
     html += '</div></div><div class="card-body">';
-    html += '<div class="prompt-text' + (needsCollapse ? ' collapsed' : '') + '" id="pt-' + i + '">' + esc(p.prompt) + '</div></div>';
+    html += '<div class="prompt-text' + (needsCollapse ? ' collapsed' : '') + '" id="pt-' + i + '">' + escWithLinks(p.prompt) + '</div></div>';
     if (needsCollapse) html += '<button class="btn-expand" onclick="toggleExpand(' + i + ')">Show more</button>';
-    if (p.tips) html += '<div class="card-tips"><strong>Tip:</strong> ' + esc(p.tips) + '</div>';
+    if (p.tips) html += '<div class="card-tips"><strong>Tip:</strong> ' + escWithLinks(p.tips) + '</div>';
     html += '<div class="card-footer"><span class="card-contributor">' + (p.contributor ? 'From ' + esc(p.contributor) : '') + '</span>';
     html += '<div class="card-footer-right">' + countLabel;
     html += '<button class="btn-copy" onclick="copyPrompt(' + i + ', this)">&#128203; Copy</button>';
